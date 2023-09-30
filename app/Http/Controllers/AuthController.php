@@ -15,34 +15,49 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
     {
-        $user = User::Create($request->only('name', 'email')
-            + [
-                'password' => Hash::make($request->input('password')),
-            ]
-        );
+        try {
+            $user = User::Create($request->only('name', 'email')
+                + [
+                    'password' => Hash::make($request->input('password')),
+                ]
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'error',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
-        return response($user, Response::HTTP_CREATED);
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_CREATED);
     }
 
     public function login(Request $request)
     {
-        if(!\Auth::attempt($request->only('email', 'password'))) {
-            return response([
-                'error' => 'invalid credencials',
+        try {
+            if(!\Auth::attempt($request->only('email', 'password'))) {
+                return response([
+                    'error' => 'invalid credencials',
 
-            ], Response::HTTP_UNAUTHORIZED);
+                ], Response::HTTP_UNAUTHORIZED);
+            }
+
+            $user = \Auth::user();
+
+            $jwt = $user->createToken('token', ['admin'])->plainTextToken;
+
+            $cookie = cookie('jwt', $jwt, 60*40);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'error',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        $user = \Auth::user();
-
-        $jwt = $user->createToken('token', ['admin'])->plainTextToken;
-
-        $cookie = cookie('jwt', $jwt, 60*40);
-
-        return response([
-            'message' => 'success',
-            'token' => $jwt
-        ])->withCookie($cookie);
+        return response()->json([
+            'status' => 'success',
+        ])->cookie($cookie)->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function user(Request $request)
@@ -52,30 +67,55 @@ class AuthController extends Controller
 
     public function logout()
     {
-        $cookie = Cookie::forget('jwt');
+        try {
+            $cookie = Cookie::forget('jwt');
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'error',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
-        return response([
-            'message' => 'success',
-        ])->withCookie($cookie);
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_ACCEPTED);
     }
 
     public function update(UpdateUserRequest $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        $user->update($request->only('name', 'email'));
+            $user->update($request->only('name', 'email'));
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'error',
+            ], Response::HTTP_ACCEPTED);
+        }
 
-        return \response(Response::HTTP_ACCEPTED);
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_ACCEPTED);
     }
 
     public function updatePassword(UpdateUserPasswordRequest $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        $user->update([
-            'password' => Hash::make($request->input('password'))
-        ]);
+            $user->update([
+                'password' => Hash::make($request->input('password'))
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'error',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
 
-        return \response(Response::HTTP_ACCEPTED);
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_ACCEPTED);
     }
 }
