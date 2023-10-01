@@ -20,6 +20,7 @@ Advantages of this System
 - Open Source: This system is open-source, allowing developers to use, modify, and distribute it freely, making it accessible to a wide range of users and projects.
 
 ## Requirements
+- Laravel 10
 - PHP 8.1.2
 - PostgreSQL 15.4
 
