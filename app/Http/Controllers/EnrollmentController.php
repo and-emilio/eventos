@@ -128,7 +128,7 @@ class EnrollmentController extends Controller
             $query = Enrollment::query();
 
             if ($search = $request->input('search')) {
-                $query->where('name', 'like', $search . "%");
+                $query->where('email', 'like', $search . "%");
             }
 
             if ($request->has('order_direction')) {
@@ -149,6 +149,51 @@ class EnrollmentController extends Controller
                 ], Response::HTTP_BAD_REQUEST);
             }
 
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 'errors',
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'data' => $enrollments->forPage($page, $qtdPerPage)->values(),
+            'message' => [
+                'qtdEnrollments' => $qtdEnrollments,
+                'page' => $page,
+                'lastPage' => $qtdPages
+            ],
+            'status' => 'success',
+        ], Response::HTTP_OK);
+    }
+
+    public function getEventsByEmail(Request $request)
+    {
+        try {
+            $page = $request->input('page', 1);
+            $qtdPerPage = 3;
+            $enrollments = Enrollment::all();
+            $qtdEnrollments = 0;
+            $qtdPages = 0;
+            $orderBy = 'name';
+            $orderDirection = 'asc';
+
+            $query = Enrollment::query();
+
+            if ($search = $request->input('search')) {
+                $query->where('email', '=', $search);
+            }
+
+            if ($request->has('order_direction')) {
+                $query->orderBy($orderBy, $request->input('order_direction'));
+            } else {
+                $query->orderBy($orderBy, $orderDirection);
+            }
+
+            $enrollments = $query->get();
+
+            $qtdEnrollments = $enrollments->count();
+            $qtdPages = ceil($qtdEnrollments / $qtdPerPage);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => $e->getMessage(),
