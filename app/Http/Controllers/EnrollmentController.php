@@ -118,7 +118,7 @@ class EnrollmentController extends Controller
     {
         try {
             $page = $request->input('page', 1);
-            $qtdPerPage = 3;
+            $qtdPerPage = 10;
             $enrollments = Enrollment::all();
             $qtdEnrollments = 0;
             $qtdPages = 0;
@@ -128,7 +128,11 @@ class EnrollmentController extends Controller
             $query = Enrollment::query();
 
             if ($search = $request->input('search')) {
-                $query->where('email', 'like', $search . "%");
+                if ($search) {
+                    $query->where('email', 'like', $search . "%");
+                }
+            } else {
+                return $this->index();
             }
 
             if ($request->has('order_direction')) {
