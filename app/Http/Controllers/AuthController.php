@@ -57,6 +57,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'token' => $jwt
         ])->cookie($cookie)->setStatusCode(Response::HTTP_CREATED);
     }
 

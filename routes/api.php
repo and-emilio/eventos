@@ -33,8 +33,8 @@ Route::prefix('admin')->group(function () {
         Route::delete('enrollment/destroy/{enrollment}', [EnrollmentController::class, 'destroy']);
         Route::get('enrollment/list', [EnrollmentController::class, 'getEnrollmentPerPage']);
         Route::get('enrollment/events', [EnrollmentController::class, 'getEvents']);
-
         Route::get('enrollment/filter', [EnrollmentController::class, 'filter']);
+        Route::get('enrollment/clientenrollments', [EnrollmentController::class, 'getEventsByEmail']);
     });
 });
 
